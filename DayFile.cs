@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace CreateRecords
@@ -15,21 +13,11 @@ namespace CreateRecords
 		public List<Dayfilerec> DayfileRecs = new List<Dayfilerec>();
 
 
-		private string dayFileName = "data" + Path.DirectorySeparatorChar + "dayfile.txt";
+		private readonly string dayFileName = "data" + Path.DirectorySeparatorChar + "dayfile.txt";
 
 		public DayFile()
 		{
 			// read in the existing day file
-
-			if (File.Exists(dayFileName + ".sav"))
-			{
-				Console.WriteLine("The dayfile.txt backup file dayfile.txt.sav already exists, aborting to prevent overwriting the original data.");
-				Console.WriteLine("Press any key to exit");
-				Console.ReadKey(true);
-				Console.WriteLine("Exiting...");
-				Environment.Exit(1);
-			}
-
 			LoadDayFile();
 		}
 
@@ -88,17 +76,74 @@ namespace CreateRecords
 				Program.LogMessage("LoadDayFile: No Dayfile found - No entries added to recent daily data list");
 				// add a rcord for yesterday, just so we have something to process,
 				// if it is left at default we will not write it out
-				var newRec = new Dayfilerec();
-				newRec.Date = DateTime.Today.AddDays(-1);
+				var newRec = new Dayfilerec
+				{
+					Date = DateTime.Today.AddDays(-1)
+				};
 				DayfileRecs.Add(newRec);
 			}
 		}
 
+
+		// 0   Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
+		// 1  Highest wind gust
+		// 2  Bearing of highest wind gust
+		// 3  Time of highest wind gust
+		// 4  Minimum temperature
+		// 5  Time of minimum temperature
+		// 6  Maximum temperature
+		// 7  Time of maximum temperature
+		// 8  Minimum sea level pressure
+		// 9  Time of minimum pressure
+		// 10  Maximum sea level pressure
+		// 11  Time of maximum pressure
+		// 12  Maximum rainfall rate
+		// 13  Time of maximum rainfall rate
+		// 14  Total rainfall for the day
+		// 15  Average temperature for the day
+		// 16  Total wind run
+		// 17  Highest average wind speed
+		// 18  Time of highest average wind speed
+		// 19  Lowest humidity
+		// 20  Time of lowest humidity
+		// 21  Highest humidity
+		// 22  Time of highest humidity
+		// 23  Total evapotranspiration
+		// 24  Total hours of sunshine
+		// 25  High heat index
+		// 26  Time of high heat index
+		// 27  High apparent temperature
+		// 28  Time of high apparent temperature
+		// 29  Low apparent temperature
+		// 30  Time of low apparent temperature
+		// 31  High hourly rain
+		// 32  Time of high hourly rain
+		// 33  Low wind chill
+		// 34  Time of low wind chill
+		// 35  High dew point
+		// 36  Time of high dew point
+		// 37  Low dew point
+		// 38  Time of low dew point
+		// 39  Dominant wind bearing
+		// 40  Heating degree days
+		// 41  Cooling degree days
+		// 42  High solar radiation
+		// 43  Time of high solar radiation
+		// 44  High UV Index
+		// 45  Time of high UV Index
+		// 46  High Feels like
+		// 47  Time of high feels like
+		// 48  Low feels like
+		// 49  Time of low feels like
+		// 50  High Humidex
+		// 51  Time of high Humidex
+		// 52  Chill hours
+		// 53  Max Rain 24 hours
+		// 54  Max Rain 24 hours Time
+
 		private Dayfilerec ParseDayFileRec(string data)
 		{
 			var st = new List<string>(Regex.Split(data, CultureInfo.CurrentCulture.TextInfo.ListSeparator));
-			double varDbl;
-			int varInt;
 			int idx = 0;
 
 			var rec = new Dayfilerec();
@@ -121,7 +166,7 @@ namespace CreateRecords
 				rec.TotalRain = Convert.ToDouble(st[idx++]);
 				rec.AvgTemp = Convert.ToDouble(st[idx++]);
 
-				if (st.Count > idx++ && double.TryParse(st[16], out varDbl))
+				if (st.Count > idx++ && double.TryParse(st[16], out double varDbl))
 					rec.WindRun = varDbl;
 
 				if (st.Count > idx++ && double.TryParse(st[17], out varDbl))
@@ -130,7 +175,7 @@ namespace CreateRecords
 				if (st.Count > idx++ && st[18].Length == 5)
 					rec.HighAvgWindTime = GetDateTime(rec.Date, st[18]);
 
-				if (st.Count > idx++ && int.TryParse(st[19], out varInt))
+				if (st.Count > idx++ && int.TryParse(st[19], out int varInt))
 					rec.LowHumidity = varInt;
 
 				if (st.Count > idx++ && st[20].Length == 5)
@@ -229,6 +274,9 @@ namespace CreateRecords
 				if (st.Count > idx++ && st[51].Length == 5)
 					rec.HighHumidexTime = GetDateTime(rec.Date, st[51]);
 
+				if (st.Count > idx++ && double.TryParse(st[52], out varDbl))
+					rec.ChillHours = varDbl;
+
 				if (st.Count > idx++ && double.TryParse(st[53], out varDbl))
 					rec.HighRain24h = varDbl;
 
@@ -238,7 +286,7 @@ namespace CreateRecords
 			}
 			catch (Exception ex)
 			{
-				Program.LogMessage($"ParseDayFileRec: Error at record {idx} - {ex.Message}");
+				//Program.LogMessage($"ParseDayFileRec: Error at record {idx} - {ex.Message}");
 				var e = new Exception($"Error at record {idx} = \"{st[idx - 1]}\" - {ex.Message}");
 				throw e;
 			}
@@ -350,51 +398,53 @@ namespace CreateRecords
 		public DateTime LowFeelsLikeTime;
 		public double HighHumidex;
 		public DateTime HighHumidexTime;
+		public double ChillHours;
 		public double HighRain24h;
 		public DateTime HighRain24hTime;
 
-        public Dayfilerec()
+		public Dayfilerec()
 		{
-			HighGust = -9999;
+			HighGust = Cumulus.DefaultHiVal;
 			HighGustBearing = 0;
-			LowTemp = 9999;
-			HighTemp = -9999;
-			LowPress = 9999;
-			HighPress = -9999;
-			HighRainRate = -9999;
-			TotalRain = -9999;
-			AvgTemp = -9999;
-			WindRun = -9999;
-			HighAvgWind = -9999;
-			LowHumidity = 9999;
-			HighHumidity = -9999;
-			ET = -9999;
-			SunShineHours = -9999;
-			HighHeatIndex = -9999;
-			HighAppTemp = -9999;
-			LowAppTemp = 9999;
-			HighHourlyRain = -9999;
-			LowWindChill = 9999;
-			HighDewPoint = -9999;
-			LowDewPoint = 9999;
-			DominantWindBearing = 9999;
-			HeatingDegreeDays = -9999;
-			CoolingDegreeDays = -9999;
-			HighSolar = -9999;
-			HighUv = -9999;
-			HighFeelsLike = -9999;
-			LowFeelsLike = 9999;
-			HighHumidex = -9999;
-			HighRain24h = -9999;
+			LowTemp = Cumulus.DefaultLoVal;
+			HighTemp = Cumulus.DefaultHiVal;
+			LowPress = Cumulus.DefaultLoVal;
+			HighPress = Cumulus.DefaultHiVal;
+			HighRainRate = Cumulus.DefaultHiVal;
+			TotalRain = Cumulus.DefaultHiVal;
+			AvgTemp = Cumulus.DefaultHiVal;
+			WindRun = Cumulus.DefaultHiVal;
+			HighAvgWind = Cumulus.DefaultHiVal;
+			LowHumidity = (int) Cumulus.DefaultLoVal;
+			HighHumidity = (int) Cumulus.DefaultHiVal;
+			ET = Cumulus.DefaultHiVal;
+			SunShineHours = Cumulus.DefaultHiVal;
+			HighHeatIndex = Cumulus.DefaultHiVal;
+			HighAppTemp = Cumulus.DefaultHiVal;
+			LowAppTemp = Cumulus.DefaultLoVal;
+			HighHourlyRain = Cumulus.DefaultHiVal;
+			LowWindChill = Cumulus.DefaultLoVal;
+			HighDewPoint = Cumulus.DefaultHiVal;
+			LowDewPoint = Cumulus.DefaultLoVal;
+			DominantWindBearing = (int) Cumulus.DefaultLoVal;
+			HeatingDegreeDays = Cumulus.DefaultHiVal;
+			CoolingDegreeDays = Cumulus.DefaultHiVal;
+			HighSolar =	(int) Cumulus.DefaultHiVal;
+			HighUv = Cumulus.DefaultHiVal;
+			HighFeelsLike = Cumulus.DefaultHiVal;
+			LowFeelsLike = Cumulus.DefaultLoVal;
+			ChillHours = Cumulus.DefaultHiVal;
+			HighHumidex = Cumulus.DefaultHiVal;
+			HighRain24h = Cumulus.DefaultHiVal;
 		}
 
 		public bool HasMissingData()
 		{
-			if (HighHumidex == -9999 || LowFeelsLike == 9999 || HighFeelsLike == -9999 || CoolingDegreeDays == -9999 || HeatingDegreeDays == -9999 ||
-				DominantWindBearing == 9999 || LowDewPoint == 9999 || HighDewPoint == -9999 || LowWindChill == 9999 || HighHourlyRain == -9999 ||
-				LowAppTemp == 9999 || HighAppTemp == -9999 || HighHeatIndex == -9999 || HighHumidity == -9999 || LowHumidity == 9999 ||
-				HighAvgWind == -9999 || AvgTemp == -9999 || HighRainRate == -9999 || LowPress == 9999 || HighPress == -9999 ||
-				HighTemp == -9999 || LowTemp == 9999 || HighGust == -9999 || HighRain24h == -9999
+			if (HighHumidex == Cumulus.DefaultHiVal || LowFeelsLike == Cumulus.DefaultLoVal || HighFeelsLike == Cumulus.DefaultHiVal || CoolingDegreeDays == Cumulus.DefaultHiVal || HeatingDegreeDays == Cumulus.DefaultHiVal ||
+				DominantWindBearing == Cumulus.DefaultLoVal || LowDewPoint == Cumulus.DefaultLoVal || HighDewPoint == Cumulus.DefaultHiVal || LowWindChill == Cumulus.DefaultLoVal || HighHourlyRain == Cumulus.DefaultHiVal ||
+				LowAppTemp == Cumulus.DefaultLoVal || HighAppTemp == Cumulus.DefaultHiVal || HighHeatIndex == Cumulus.DefaultHiVal || HighHumidity == Cumulus.DefaultHiVal || LowHumidity == Cumulus.DefaultLoVal ||
+				HighAvgWind == Cumulus.DefaultHiVal || AvgTemp == Cumulus.DefaultHiVal || HighRainRate == Cumulus.DefaultHiVal || LowPress == Cumulus.DefaultLoVal || HighPress == Cumulus.DefaultHiVal ||
+				HighTemp == Cumulus.DefaultHiVal || LowTemp == Cumulus.DefaultLoVal || HighGust == Cumulus.DefaultHiVal || HighRain24h == Cumulus.DefaultHiVal
 			)
 			{
 				return true;

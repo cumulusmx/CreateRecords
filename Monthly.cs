@@ -8,7 +8,7 @@ namespace CreateRecords
 	class Monthly
 	{
 		public List<Records> Recs = new List<Records>(13);
-		private static string filename = "data" + Path.DirectorySeparatorChar + "monthlyalltime.ini";
+		private static readonly string filename = "data" + Path.DirectorySeparatorChar + "monthlyalltime.ini";
 
 		public Monthly()
 		{

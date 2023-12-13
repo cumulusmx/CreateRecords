@@ -49,8 +49,19 @@ namespace CreateRecords
 			// for each day since records began date
 			var dayfileStart = dayfile.DayfileRecs.Count > 0 ? dayfile.DayfileRecs[0].Date : DateTime.MaxValue;
 
-			LogMessage($"First dayfile record: {dayfileStart:d}");
-			Console.WriteLine($"First dayfile record: {dayfileStart:d}");
+			if (dayfileStart == DateTime.MaxValue)
+			{
+				LogMessage("No valid day file records found!");
+				Console.WriteLine("No valid day file records found!");
+				Console.WriteLine("Exiting...");
+
+				Environment.Exit(1);
+			}
+			else
+			{
+				LogMessage($"First dayfile record: {dayfileStart:d}");
+				Console.WriteLine($"First dayfile record: {dayfileStart:d}");
+			}
 
 
 			if (!GetUserConfirmation($"This will attempt to create/update your station weather records from {dayfileStart:D}. Continue? [Y/N]: "))

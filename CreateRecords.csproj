@@ -5,7 +5,7 @@
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <AssemblyVersion>$(PackageVersion)</AssemblyVersion>
     <FileVersion>$(PackageVersion)</FileVersion>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <StartupObject>CreateRecords.Program</StartupObject>
     <TargetFramework>net48</TargetFramework>
     <Authors>Mark Crossley</Authors>

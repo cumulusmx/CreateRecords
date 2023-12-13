@@ -7,7 +7,7 @@ namespace CreateRecords
 	class ThisYear
 	{
 		public Records Recs = new Records();
-		private static string filename = "data" + Path.DirectorySeparatorChar + "year.ini";
+		private static readonly string filename = "data" + Path.DirectorySeparatorChar + "year.ini";
 
 		public ThisYear()
 		{

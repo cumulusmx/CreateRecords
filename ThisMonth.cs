@@ -7,7 +7,7 @@ namespace CreateRecords
 	class ThisMonth
 	{
 		public Records Recs = new Records();
-		private static string filename = "data" + Path.DirectorySeparatorChar + "month.ini";
+		private static readonly string filename = "data" + Path.DirectorySeparatorChar + "month.ini";
 
 		public ThisMonth()
 		{

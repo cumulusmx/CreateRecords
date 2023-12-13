@@ -27,12 +27,12 @@ namespace CreateRecords
 		public const double DefaultHiVal = -9999;
 		public const double DefaultLoVal = 9999;
 
-		private StationOptions StationOptions = new StationOptions();
+		private readonly StationOptions StationOptions = new StationOptions();
 		internal StationUnits Units = new StationUnits();
-		private int[] WindDPlaceDefaults = { 1, 0, 0, 0 }; // m/s, mph, km/h, knots
-		private int[] TempDPlaceDefaults = { 1, 1 };
-		private int[] PressDPlaceDefaults = { 1, 1, 2 };
-		private int[] RainDPlaceDefaults = { 1, 2 };
+		private readonly int[] WindDPlaceDefaults = { 1, 0, 0, 0 }; // m/s, mph, km/h, knots
+		private readonly int[] TempDPlaceDefaults = { 1, 1 };
+		private readonly int[] PressDPlaceDefaults = { 1, 1, 2 };
+		private readonly int[] RainDPlaceDefaults = { 1, 2 };
 
 		public Cumulus()
 		{
